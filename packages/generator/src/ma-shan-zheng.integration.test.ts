@@ -12,7 +12,7 @@ const SAMPLE = '中国人永一';
 
 describe('Ma Shan Zheng Simplified Chinese pipeline (issue #52)', () => {
   test('downloads Ma Shan Zheng and processGlyph returns stroke data for sample Han', async () => {
-    const paths = await downloadFont('Ma Shan Zheng', { chars: SAMPLE + 'Aa' });
+    const paths = await downloadFont('Ma Shan Zheng', { chars: `${SAMPLE}Aa` });
     expect(paths.length).toBeGreaterThanOrEqual(1);
     const buffers = await Promise.all(paths.map(async (p) => Bun.file(p).arrayBuffer()));
     const fontInfo = await parseFont(buffers[0]!, buffers.slice(1));

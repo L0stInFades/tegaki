@@ -59,6 +59,12 @@ export function buildEffects(effectsState: EffectsState, customEffects: CustomEf
       angle: effectsState.globalGradient.angle,
     };
   }
+  if (effectsState.variation.enabled) {
+    result.variation = {
+      amplitude: effectsState.variation.amplitude,
+      frequency: effectsState.variation.frequency,
+    };
+  }
   for (const custom of customEffects) {
     if (custom.enabled) result[custom.key] = { effect: custom.effect, ...custom.config };
   }

@@ -67,7 +67,7 @@ function pathLength(pts: Point[]): number {
  * Returns null for blank/malformed lines.
  */
 export function parseHersheyLine(line: string): HersheyGlyph | null {
-  if (!line || !line.trim()) return null;
+  if (!line?.trim()) return null;
   // Format: IIIIIVVV + pairs…  (id 5 chars, vertex count 3 chars, then data)
   if (line.length < 8) return null;
   const id = Number.parseInt(line.slice(0, 5), 10);

@@ -29,6 +29,7 @@ export const DEFAULT_EFFECTS_STATE: EffectsState = {
   taper: { enabled: false, startLength: 0.15, endLength: 0.15 },
   strokeGradient: { enabled: false, colors: 'rainbow', saturation: 80, lightness: 55 },
   globalGradient: { enabled: false, colors: ['#ff0000', '#0000ff'], angle: 0 },
+  variation: { enabled: false, amplitude: 12, frequency: 0.8 },
 };
 
 /** A duplicated (custom-keyed) effect instance. */
