@@ -8,13 +8,16 @@ import type { Point, Stroke, TimedPoint } from 'tegaki';
 import { ORIENT_X_WEIGHT } from '../constants.ts';
 import { getStrokeWidth } from './width.ts';
 
-// Dot classification thresholds (bitmap-space). A stroke is reclassified as a
-// "dot" (priority -1) when its bbox diagonal is small relative to the glyph's
-// bbox AND no other stroke's bbox is within a small gap distance — the same
-// two properties that distinguish disconnected marks like i-dots and Arabic
-// nuqṭa from body strokes.
-const DOT_DIAG_RATIO = 0.15;
-const DOT_ISOLATION_RATIO = 0.04;
+// Dot / diacritic classification thresholds (bitmap-space).
+// A stroke is reclassified as a deferred mark (priority -1) when it is small
+// relative to the glyph — by bbox diagonal *or* path length — and is either
+// spatially isolated from every other stroke *or* sits clearly above/below the
+// body formed by larger strokes. Isolation alone misses Latin circumflexes and
+// Greek tonos marks that sit close to the letter top (issue #27); length-based
+// smallness alone would over-flag short mid-glyph ticks in multi-stroke CJK.
+const DOT_DIAG_RATIO = 0.28;
+const DOT_LENGTH_RATIO = 0.28;
+const DOT_ISOLATION_RATIO = 0.08;
 
 function dist(a: Point, b: Point): number {
   const dx = a.x - b.x;
@@ -191,10 +194,11 @@ function bboxGap(a: BBox, b: BBox): number {
 }
 
 /**
- * Flag short-and-isolated strokes as dots (priority -1) so word-level timeline
- * scheduling can defer them until after every body stroke in the word is
- * drawn. Targets disconnected marks — i-dots, Arabic nuqṭa, diacritics — while
- * leaving glyph-body strokes alone.
+ * Flag short disconnected marks as dots/diacritics (priority -1) so word-level
+ * timeline scheduling can defer them until after every body stroke in the word
+ * is drawn. Targets i-dots, Arabic nuqṭa, and Latin/Greek accents that sit
+ * above or below the letter body — including marks that hug the body closely
+ * enough that a pure isolation gap check would miss them (issue #27).
  */
 function classifyDots(strokes: Stroke[]): void {
   if (strokes.length < 2) return; // a lone stroke is never a "dot to defer"
@@ -212,12 +216,36 @@ function classifyDots(strokes: Stroke[]): void {
   const glyphDiag = Math.sqrt((glyphMaxX - glyphMinX) ** 2 + (glyphMaxY - glyphMinY) ** 2);
   if (glyphDiag <= 0) return;
 
+  const maxLen = Math.max(...strokes.map((s) => s.length), 0);
   const maxDotDiag = glyphDiag * DOT_DIAG_RATIO;
   const isolationThreshold = glyphDiag * DOT_ISOLATION_RATIO;
+  const maxDotLen = maxLen * DOT_LENGTH_RATIO;
+
+  // Body candidates: strokes that are not small by either size metric. Used to
+  // decide whether a small mark sits above/below the letter rather than inside it.
+  const isBody = strokes.map((s, i) => bboxDiag(boxes[i]!) > maxDotDiag && s.length > maxDotLen);
+  let bodyMinX = Infinity;
+  let bodyMinY = Infinity;
+  let bodyMaxX = -Infinity;
+  let bodyMaxY = -Infinity;
+  let hasBody = false;
+  for (let i = 0; i < strokes.length; i++) {
+    if (!isBody[i]) continue;
+    hasBody = true;
+    const b = boxes[i]!;
+    if (b.minX < bodyMinX) bodyMinX = b.minX;
+    if (b.minY < bodyMinY) bodyMinY = b.minY;
+    if (b.maxX > bodyMaxX) bodyMaxX = b.maxX;
+    if (b.maxY > bodyMaxY) bodyMaxY = b.maxY;
+  }
+  const bodyBox: BBox | null = hasBody ? { minX: bodyMinX, minY: bodyMinY, maxX: bodyMaxX, maxY: bodyMaxY } : null;
 
   for (let i = 0; i < strokes.length; i++) {
+    if (isBody[i]) continue;
     const diag = bboxDiag(boxes[i]!);
-    if (diag > maxDotDiag) continue;
+    const small = diag <= maxDotDiag || strokes[i]!.length <= maxDotLen;
+    if (!small) continue;
+
     let isolated = true;
     for (let j = 0; j < strokes.length; j++) {
       if (j === i) continue;
@@ -226,7 +254,20 @@ function classifyDots(strokes: Stroke[]): void {
         break;
       }
     }
-    if (isolated) strokes[i]!.priority = -1;
+
+    // Accents that hug the letter top fail isolation but still sit outside the
+    // body bbox. Prefer a strict above/below split; also accept a centroid that
+    // sits outside the body with a positive gap (lightly separated marks).
+    let outsideBody = false;
+    if (bodyBox) {
+      const b = boxes[i]!;
+      const cy = (b.minY + b.maxY) / 2;
+      const fullyAboveOrBelow = b.maxY < bodyBox.minY || b.minY > bodyBox.maxY;
+      const centroidOutside = cy < bodyBox.minY || cy > bodyBox.maxY;
+      outsideBody = fullyAboveOrBelow || (centroidOutside && bboxGap(b, bodyBox) > 0);
+    }
+
+    if (isolated || outsideBody) strokes[i]!.priority = -1;
   }
 }
 

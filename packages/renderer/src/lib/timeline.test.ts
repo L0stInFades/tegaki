@@ -374,3 +374,61 @@ describe('computeTimeline for Devanagari "द्" (consonant + virama)', () => {
     expect(tl.totalDuration).toBeLessThan(lastStrokeDelay);
   });
 });
+
+describe('computeTimeline — accent/diacritic deferral (issue #27)', () => {
+  const stroke = (d: number, a: number, r?: number) => ({
+    p: [[0, 0, 1] as [number, number, number]],
+    d,
+    a,
+    ...(r !== undefined ? { r } : {}),
+  });
+
+  test('within-glyph: accent stroke with r=-1 starts after base body (ô-style)', () => {
+    // Bundled order already has body first (generator reorder), accent second with r=-1.
+    // Body: d=0 a=0.5; accent: d=0.6 a=0.1 r=-1.
+    const oCirc = {
+      w: 500,
+      t: 0.7,
+      s: [stroke(0, 0.5), stroke(0.6, 0.1, -1)],
+    };
+    const bundle = makeBundle({ glyphData: { ô: oCirc, c: glyph(400, 0.3), t: glyph(300, 0.25), e: glyph(350, 0.3) } });
+    const tl = computeTimeline('côte', bundle);
+    const oEntry = tl.entries.find((e) => e.char === 'ô')!;
+    expect(oEntry.hasGlyph).toBe(true);
+    // Accent is deferred to the word-level dot phase — its effective delay is
+    // rewritten into strokeDelays[1] and must be >= body duration (0.5).
+    expect(oEntry.strokeDelays?.[1]).toBeDefined();
+    expect(oEntry.strokeDelays![1]!).toBeGreaterThanOrEqual(0.5);
+  });
+
+  test('accent must not animate before its base when accent is listed first in stroke array', () => {
+    // Pathological bundle: accent stroke index 0 with r=-1, body index 1.
+    // partitionGlyph still treats r=-1 as dots regardless of array order.
+    const badOrder = {
+      w: 500,
+      t: 0.8,
+      s: [stroke(0, 0.15, -1), stroke(0.2, 0.5)],
+    };
+    const bundle = makeBundle({ glyphData: { é: badOrder } });
+    const tl = computeTimeline('é', bundle);
+    const entry = tl.entries[0]!;
+    expect(entry.strokeDelays?.[0]).toBeDefined();
+    // Dot phase starts after body (0.5s of body starting at 0.2 → body ends ~0.7,
+    // but bodyDuration from partition is max body end = 0.7).
+    // Effective accent delay relative to entry offset must be >= bodyDuration.
+    const bodyEnd = 0.2 + 0.5;
+    expect(entry.strokeDelays![0]!).toBeGreaterThanOrEqual(0.5 - 1e-9);
+    expect(entry.duration).toBeGreaterThanOrEqual(bodyEnd - 0.2 - 1e-9);
+  });
+
+  test('deferDots:false keeps bundled accent timing (no strokeDelays rewrite)', () => {
+    const oCirc = {
+      w: 500,
+      t: 0.7,
+      s: [stroke(0, 0.5), stroke(0.6, 0.1, -1)],
+    };
+    const bundle = makeBundle({ glyphData: { ô: oCirc } });
+    const tl = computeTimeline('ô', bundle, { deferDots: false });
+    expect(tl.entries[0]?.strokeDelays).toBeUndefined();
+  });
+});
