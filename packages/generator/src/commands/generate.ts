@@ -22,6 +22,7 @@ import {
 import { enumerateVariantGlyphIds } from '../font/enumerate-variants.ts';
 import { getGsubFeatures } from '../font/hb-shaper.ts';
 import { extractGlyph, extractGlyphById, inferLineCap } from '../font/parse.ts';
+import { fetchHanziWriterData, hanziDataToCompactGlyph, isCjkIdeograph } from '../hanzi-stroke-data.ts';
 import { computePathBBox, flattenPath } from '../processing/bezier.ts';
 import { toFontUnits } from '../processing/font-units.ts';
 import { rasterize } from '../processing/rasterize.ts';
@@ -173,6 +174,12 @@ export interface ExtractBundleInput {
   fullFontBuffer?: ArrayBuffer;
   /** Filename for the full font file (e.g. `caveat.ttf`). */
   fullFontFileName?: string;
+  /**
+   * When true, CJK ideographs prefer Make Me a Hanzi / hanzi-writer-data medians
+   * for stroke geometry and order (issue #52) instead of the skeleton pipeline.
+   * Latin and missing hanzi entries still use the normal pipeline.
+   */
+  useHanziStrokeData?: boolean;
 }
 
 export interface TegakiBundleOutput {
@@ -359,6 +366,7 @@ export async function extractTegakiBundle(input: ExtractBundleInput): Promise<Te
     subset = true,
     fullFontBuffer,
     fullFontFileName,
+    useHanziStrokeData = false,
   } = input;
   const fontInfo = await parseFont(fontBuffer, extraFontBuffers, requestedFamily);
 
@@ -397,6 +405,18 @@ export async function extractTegakiBundle(input: ExtractBundleInput): Promise<Te
     }
 
     glyphResults[char] = result;
+
+    if (useHanziStrokeData && isCjkIdeograph(char)) {
+      const hanzi = await fetchHanziWriterData(char);
+      if (hanzi) {
+        const compact = hanziDataToCompactGlyph(hanzi, result.advanceWidth, {
+          unitsPerEm: fontInfo.unitsPerEm,
+          drawingSpeed: options.drawingSpeed,
+          strokePause: options.strokePause,
+        });
+        (result as PipelineResult & { _hanziCompact?: typeof compact })._hanziCompact = compact;
+      }
+    }
 
     const { strokesFontUnits, polylines, transform } = result;
     const skeletonFontUnits = polylines.map((pl) =>
@@ -461,7 +481,8 @@ export async function extractTegakiBundle(input: ExtractBundleInput): Promise<Te
   // Compact glyph data: short keys, points as [x, y, width] tuples
   const glyphDataMap: Record<string, CompactGlyph> = {};
   for (const glyph of Object.values(output.glyphs)) {
-    glyphDataMap[glyph.char] = {
+    const hanziOverride = (glyphResults[glyph.char] as (PipelineResult & { _hanziCompact?: CompactGlyph }) | undefined)?._hanziCompact;
+    glyphDataMap[glyph.char] = hanziOverride ?? {
       w: glyph.advanceWidth,
       t: glyph.totalAnimationDuration,
       s: glyph.strokes.map(toCompactStroke),

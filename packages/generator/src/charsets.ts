@@ -113,6 +113,35 @@ const KOREAN_SYLLABLES =
   '가각간갈감갑값갔강갖같개객거건걸검것게겐겠겨격견결겸겼경계고곡곤골곱곳공과관광괴교구국군굴궁권귀규균그극근글금급기긴길김까깨께꾸끌끝끼나낙난날남났낮내낸냈냐너널넘네넷녀년념노녹논놀농높놓누눈뉴늄느는늘능니닉닌님다단달담답당대더덕던덜데덴델도독돈돌동됐되된될됨두둔둘둥뒤드득든들등디딩따딸때떠떤떨또뜻라락란람랍랑래랙랜램략량러런럼럽렇레렉렌려력련렬렸령례로록론롤롭롯료룡루룹류륙률르른를름릉리릭린릴림립링마막만많말망맞맡매맥맨맹머먹먼메멘며면멸명몇모목몬몰못몽묘무문물뮤므미민밀밍및바박밖반받발밝방배백밴버번벌범법베벤벨벽변별병보복본볼봇봉부북분불붕붙브블비빈빌빛빠뿐사삭산살삼상새색생샤서석선설섬섭성세센셀셔션소속손솔송쇄쇼수숙순술숨숭슈스슨슬습승시식신실심십싱싸쌍써쓰씨아악안않알암압았앙앞애액앤앨앵야약양어억언얻얼엄업없었에엔엘여역연열염였영예옛오옥온올옮옹와완왔왕왜외왼요욕용우욱운울움웅워원월웠웨웹위윈윌유육윤율융으은을음읍응의이익인일임입있잉자작잔잘잠잡장재쟁저적전절점접정제젝젠젤져졌조족존졸종좋좌죄주죽준줄중즈즉즌즘증지직진질짐집징짜째쪽차착찬찰참창찾채책처척천철첫청체쳐쳤초촉촌총최추축춘출충취츠측층치칙친칠침칭카칸칼캐캠커컨컬컴컵케켜켰코콘콜콩쿄쿠큐크큰클키킨킬킹타탁탄탈탐탑탕태택터턴털테텍텐텔템토톤톨통퇴투튀튜트특틀티틴팀팅파판팔패퍼페펜편평폐포폭폰폴표푸풀품풍퓨프플피픽핀필하학한할함합항해핵했행향허헌험헤헨헬혀혁현혈협형혜호혹혼홀홈홍화확환활황회획효후훈휘휴흐흑흔흥희히힌힘';
 export const KOREAN_CHARS = KOREAN_SYLLABLES + KOREAN_JAMO + DEFAULT_CHARS;
 
+// ── Simplified Chinese ────────────────────────────────────────────────────
+// Representative Level-1 通用规范汉字 subset sized to stay under the Google
+// Fonts css2 `&text=` subsetting cliff (~6.5 KB encoded). The full Level-1
+// table is 3500+ characters — users needing more coverage can pass a custom
+// `--chars` set or expand this list. Includes common Han + CJK punctuation +
+// Latin baseline for mixed-script text.
+//
+// Frequency-biased everyday characters (numbers, pronouns, verbs, nature,
+// education, time) plus a few multi-stroke samples used by tests (永, 国).
+const CN_COMMON =
+  '一二三四五六七八九十百千万亿零' +
+  '上下左右中大小多少长短高低好坏' +
+  '人男女孩子们我你他她它们的了在是有和' +
+  '来去出入开关见说读写学做工作' +
+  '年月日时分秒今天明天昨天早晚' +
+  '春夏秋冬东西南北风雨雪电' +
+  '山水火土木金田石花草树木' +
+  '父母兄弟姐妹朋友老师学生' +
+  '中国家城市乡村学校医院' +
+  '吃喝买卖钱书车飞机电话' +
+  '红黄蓝绿白黑色彩美丽' +
+  '爱思想心力量精神希望' +
+  '永国汉字语言文化历史';
+
+const CN_PUNCT = '，。！？；：、（）【】《》—…·';
+
+/** Simplified Chinese preset for Ma Shan Zheng and custom SC bundles. */
+export const SIMPLIFIED_CHINESE_CHARS = CN_COMMON + CN_PUNCT + DEFAULT_CHARS;
+
 /**
  * Named presets for the generator UI. Each preset is the default `--chars`
  * for its writing system; clicking one in the UI replaces the user's char
@@ -126,4 +155,5 @@ export const CHARSET_PRESETS: { name: string; chars: string }[] = [
   { name: 'Bengali', chars: BENGALI_CHARS },
   { name: 'Japanese', chars: JAPANESE_CHARS },
   { name: 'Korean', chars: KOREAN_CHARS },
+  { name: 'Simplified Chinese', chars: SIMPLIFIED_CHINESE_CHARS },
 ];

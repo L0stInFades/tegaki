@@ -4,7 +4,15 @@
 // included). Run via `bun --filter tegaki generate-fonts`.
 
 import { spawn } from 'node:child_process';
-import { ARABIC_CHARS, BENGALI_CHARS, DEVANAGARI_CHARS, HEBREW_CHARS, JAPANESE_CHARS, KOREAN_CHARS } from 'tegaki-generator';
+import {
+  ARABIC_CHARS,
+  BENGALI_CHARS,
+  DEVANAGARI_CHARS,
+  HEBREW_CHARS,
+  JAPANESE_CHARS,
+  KOREAN_CHARS,
+  SIMPLIFIED_CHINESE_CHARS,
+} from 'tegaki-generator';
 
 interface FontSpec {
   family: string;
@@ -25,6 +33,7 @@ const FONTS: FontSpec[] = [
   { family: 'Tillana', dir: 'tillana', chars: DEVANAGARI_CHARS },
   { family: 'Atma', dir: 'atma', chars: BENGALI_CHARS },
   { family: 'Nanum Pen Script', dir: 'nanum-pen-script', chars: KOREAN_CHARS },
+  { family: 'Ma Shan Zheng', dir: 'ma-shan-zheng', chars: SIMPLIFIED_CHINESE_CHARS },
 ];
 
 async function runOne(spec: FontSpec): Promise<void> {
