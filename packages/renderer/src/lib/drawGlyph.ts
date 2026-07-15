@@ -2,6 +2,7 @@ import type { LineCap, TegakiGlyphData } from '../types.ts';
 import { findEffect, findEffects, type ResolvedEffect } from './effects.ts';
 import { type SubdividedStroke, subdivideStroke } from './strokeCache.ts';
 import { resolveCSSLength } from './utils.ts';
+import { varyPoint } from './variation.ts';
 
 type Stroke = TegakiGlyphData['s'][number];
 
@@ -133,6 +134,7 @@ export function drawGlyph(
   const pressureEffect = findEffect(effects, 'pressureWidth');
   const taperEffect = findEffect(effects, 'taper');
   const strokeGradientEffect = findEffect(effects, 'strokeGradient');
+  const variationEffect = findEffect(effects, 'variation');
 
   // Pressure params (0 = uniform avg width, 1 = fully per-point width)
   const pressureAmount = pressureEffect ? Math.max(0, Math.min(pressureEffect.config.strength ?? 1, 1)) : 0;
@@ -142,6 +144,11 @@ export function drawGlyph(
   const wobbleFrequency = wobbleEffect ? (wobbleEffect.config.frequency ?? 8) : 0;
   const wobbleMode = wobbleEffect?.config.mode ?? 'sine';
   const hasWobble = !!wobbleEffect;
+
+  // Skeleton variation params (low-frequency structural drift; font units)
+  const hasVariation = !!variationEffect;
+  const variationAmplitude = variationEffect ? (variationEffect.config.amplitude ?? 12) : 0;
+  const variationFrequency = variationEffect?.config.frequency ?? 0.8;
 
   // Taper params
   const taperStart = taperEffect ? Math.max(0, Math.min(taperEffect.config.startLength ?? 0.15, 1)) : 0;
@@ -177,6 +184,18 @@ export function drawGlyph(
     if (!hasWobble) return 0;
     if (wobbleMode === 'noise') return wobbleAmplitude * (noise1d(x * 0.1 + idx * 0.5, seed * 1.3 + 1000) * 2 - 1);
     return wobbleAmplitude * Math.cos(wobbleFrequency * (x * 0.01 + idx * 0.5) + seed * 1.3);
+  };
+
+  /** Combined variation + wobble displacement in font units for a vertex. */
+  const displace = (x: number, y: number, idx: number): { x: number; y: number } => {
+    let px_ = x;
+    let py_ = y;
+    if (hasVariation && variationAmplitude !== 0) {
+      const v = varyPoint(x, y, idx, seed, { amplitude: variationAmplitude, frequency: variationFrequency });
+      px_ = v.x;
+      py_ = v.y;
+    }
+    return { x: px_ + wobbleDx(px_, py_, idx), y: py_ + wobbleDy(px_, py_, idx) };
   };
 
   // Helper: convert font-unit point to pixel
@@ -224,8 +243,9 @@ export function drawGlyph(
     if (rawPts.length === 1 || isDegenerate) {
       if (progress <= 0) continue;
       const p = rawPts[0]!;
-      const dotX = px(p[0]! + wobbleDx(p[0]!, p[1]!, 0));
-      const dotY = py(p[1]! + wobbleDy(p[0]!, p[1]!, 0));
+      const d = displace(p[0]!, p[1]!, 0);
+      const dotX = px(d.x);
+      const dotY = py(d.y);
       const baseLineWidth = Math.max(p[2]!, 0.5) * scale * strokeScale;
       const perPointDot = Math.max(p[2]!, 0.5) * scale * strokeScale;
       let dotWidth = baseLineWidth + (perPointDot - baseLineWidth) * pressureAmount;
@@ -312,12 +332,14 @@ export function drawGlyph(
     const tys: number[] = new Array(tcount);
     for (let i = 0; i <= lastIdx; i++) {
       const v = vertices[i]!;
-      txs[i] = px(v.x + wobbleDx(v.x, v.y, v.idx));
-      tys[i] = py(v.y + wobbleDy(v.x, v.y, v.idx));
+      const d = displace(v.x, v.y, v.idx);
+      txs[i] = px(d.x);
+      tys[i] = py(d.y);
     }
     if (hasTail) {
-      txs[tcount - 1] = px(tailX + wobbleDx(tailX, tailY, tailIdx));
-      tys[tcount - 1] = py(tailY + wobbleDy(tailX, tailY, tailIdx));
+      const d = displace(tailX, tailY, tailIdx);
+      txs[tcount - 1] = px(d.x);
+      tys[tcount - 1] = py(d.y);
     }
 
     ctx.lineCap = lineCap;

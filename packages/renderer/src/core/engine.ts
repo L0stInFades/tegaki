@@ -395,6 +395,10 @@ export class TegakiEngine {
 
   play(): void {
     if (this._timeControl.mode !== 'uncontrolled') return;
+    // Issue #31: reseed so each play is a fresh handwriting attempt when variation is on.
+    if (findEffect(this._resolvedEffects, 'variation')) {
+      this._seed = Math.random() * 1000;
+    }
     this._playing = true;
     this._evaluatePlayback();
   }
@@ -933,6 +937,9 @@ export class TegakiEngine {
         this._internalTime = 0;
         this._prevCompleted = false;
         this._smoothedBoost = 0;
+        if (findEffect(this._resolvedEffects, 'variation')) {
+          this._seed = Math.random() * 1000;
+        }
       }
       this._notifyTimeChange();
       this._render();
@@ -977,6 +984,9 @@ export class TegakiEngine {
           next = totalDur;
         } else {
           next %= totalDur;
+          if (findEffect(this._resolvedEffects, 'variation')) {
+            this._seed = Math.random() * 1000;
+          }
         }
       } else {
         next = totalDur;

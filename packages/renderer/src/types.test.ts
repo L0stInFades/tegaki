@@ -20,6 +20,7 @@ describe.skip('TegakiEffects', () => {
     assertType({ globalGradient: { colors: ['#ff0000', '#00ff00'], angle: 45 } });
     assertType({ taper: { startLength: 0.2, endLength: 0.1 } });
     assertType({ pressureWidth: {} });
+    assertType({ variation: { amplitude: 12, frequency: 0.8 } });
   });
 
   test('known key with boolean shorthand', () => {
@@ -27,6 +28,7 @@ describe.skip('TegakiEffects', () => {
     assertType({ wobble: true });
     assertType({ taper: true });
     assertType({ strokeGradient: true });
+    assertType({ variation: true });
   });
 
   test('known key with explicit effect field', () => {
@@ -92,6 +94,8 @@ describe.skip('TegakiEffects', () => {
     assertType({ myGlobalGradient: { effect: 'globalGradient', colors: ['#f00', '#00f'] } });
     // @ts-expect-error — taper is singleton, cannot be duplicated via custom key
     assertType({ myTaper: { effect: 'taper', startLength: 0.2 } });
+    // @ts-expect-error — variation is singleton, cannot be duplicated via custom key
+    assertType({ myVariation: { effect: 'variation', amplitude: 10 } });
   });
 
   test('singleton effect works with its own key', () => {
