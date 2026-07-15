@@ -240,6 +240,20 @@ function classifyDots(strokes: Stroke[]): void {
   }
   const bodyBox: BBox | null = hasBody ? { minX: bodyMinX, minY: bodyMinY, maxX: bodyMaxX, maxY: bodyMaxY } : null;
 
+  // Latin/Greek accents: one dominant body + 1–2 tiny marks. CJK ideographs have
+  // many intentional short strokes of similar scale — tagging them as dots makes
+  // word-level deferDots reorder bodies of later characters ahead of earlier marks
+  // (issue #27 regression on SC/JP). Bail when there is no single dominant body.
+  const totalLen = strokes.reduce((sum, s) => sum + s.length, 0);
+  const maxStrokeLen = maxLen;
+  // Require the longest stroke to be a clear majority of the glyph path length.
+  // 下-like CJK skeletons often have max/total ≈ 0.4–0.5 with intentional short
+  // strokes; treat those as multi-component letters, not letter+accent.
+  const hasDominantBody = maxStrokeLen > 0 && maxStrokeLen >= totalLen * 0.55;
+  if (!hasDominantBody && strokes.length >= 3) {
+    return;
+  }
+
   for (let i = 0; i < strokes.length; i++) {
     if (isBody[i]) continue;
     const diag = bboxDiag(boxes[i]!);

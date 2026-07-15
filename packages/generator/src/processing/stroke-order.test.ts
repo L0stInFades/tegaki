@@ -106,3 +106,23 @@ describe('orderStrokes — RTL orientation still works with diacritic deferral',
     expect(strokes[1]!.priority).toBe(-1);
   });
 });
+
+describe('orderStrokes — CJK multi-stroke must not get diacritic priority (issue #27/#52)', () => {
+  test('even-ish multi-stroke glyph (下-like) keeps all strokes at priority 0', () => {
+    // Three intentional body strokes of comparable length — no single accent mark.
+    const top = poly([10, 20], [90, 20]);
+    const mid = poly([50, 20], [50, 90]);
+    const bottom = poly([20, 90], [80, 90]);
+    const strokes = order([top, mid, bottom]);
+    expect(strokes.every((s) => (s.priority ?? 0) === 0)).toBe(true);
+  });
+
+  test('four-stroke character with no dominant body is never deferred', () => {
+    const s1 = poly([10, 10], [90, 10]);
+    const s2 = poly([10, 40], [90, 40]);
+    const s3 = poly([10, 70], [90, 70]);
+    const s4 = poly([50, 10], [50, 90]);
+    const strokes = order([s1, s2, s3, s4]);
+    expect(strokes.every((s) => (s.priority ?? 0) === 0)).toBe(true);
+  });
+});

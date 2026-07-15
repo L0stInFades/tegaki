@@ -41,8 +41,10 @@ export const EXAMPLE_FONT_TEXTS: Record<string, string> = {
   // Klee One's bundled charset is Kyōiku grade 1–2 only; `素` (grade 5) would
   // miss the subset, so use a phrase that stays inside the bundled kanji.
   'Klee One': '手書きは楽しい',
-  'Noto Sans SC': '手写真棒',
-  'Ma Shan Zheng': '手写真棒',
+  // Ma Shan Zheng ships a representative SC subset (not full Level-1). Use only
+  // glyphs present in SIMPLIFIED_CHINESE_CHARS / the bundled glyphData.
+  'Noto Sans SC': '中国人',
+  'Ma Shan Zheng': '中国人',
   'Noto Sans KR': '손글씨는 멋져요',
   'Nanum Myeongjo': '손글씨는 멋져요',
   Rubik: 'الكتابة اليدوية رائعة',
@@ -70,6 +72,7 @@ export const TEXT_PRESETS: { name: string; text: string }[] = [
   { name: 'Devanagari', text: 'हस्तलेखन अद्भुत है' },
   { name: 'Bengali', text: 'হাতের লেখা সুন্দর' },
   { name: 'Japanese', text: '手書きは楽しい' },
+  { name: 'Simplified Chinese', text: '中国人' },
 ];
 
 export const SKELETON_METHODS: { value: SkeletonMethod; label: string }[] = [

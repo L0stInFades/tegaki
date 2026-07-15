@@ -43,3 +43,23 @@ describe('Ma Shan Zheng Simplified Chinese pipeline (issue #52)', () => {
     }
   });
 });
+
+describe('shipped Ma Shan Zheng bundle (issue #52 product path)', () => {
+  test('glyphData.json uses hanzi-writer stroke count for 中 (4) and no CJK r=-1 tags', async () => {
+    const path = new URL('../../renderer/fonts/ma-shan-zheng/glyphData.json', import.meta.url);
+    const glyphData = (await Bun.file(path).json()) as Record<string, { s: { r?: number; p: number[][] }[] }>;
+    expect(glyphData.中?.s.length).toBe(4);
+    expect(glyphData.下?.s.length).toBe(3);
+    expect(glyphData.人?.s.length).toBe(2);
+    // Official hanzi widths are constant 40 in font units
+    expect(glyphData.中!.s.every((s) => s.p.every((p) => p[2] === 40))).toBe(true);
+    for (const [ch, d] of Object.entries(glyphData)) {
+      const cp = ch.codePointAt(0) ?? 0;
+      if (cp < 0x4e00 || cp > 0x9fff) continue;
+      expect(
+        d.s.every((s) => s.r === undefined || s.r >= 0),
+        `${ch} must not carry diacritic priority`,
+      ).toBe(true);
+    }
+  });
+});

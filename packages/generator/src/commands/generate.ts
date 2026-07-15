@@ -79,6 +79,11 @@ export const generateArgsSchema = pipelineOptionsSchema.extend({
     .meta({ flags: 'c' }),
   force: z.boolean().default(false).describe('Re-download font even if cached').meta({ flags: 'f' }),
   debug: z.boolean().default(false).describe('Output intermediate steps (bitmap, skeleton, trace, animation SVGs)').meta({ flags: 'd' }),
+  useHanziStrokeData: z
+    .boolean()
+    .default(false)
+    .describe('For CJK ideographs, use hanzi-writer-data medians for stroke geometry/order instead of skeletonize (issue #52)')
+    .meta({ flags: 'use-hanzi-stroke-data' }),
 });
 
 export interface PipelineResult {
