@@ -1,4 +1,13 @@
-export { ARABIC_CHARS, BENGALI_CHARS, CHARSET_PRESETS, DEVANAGARI_CHARS, HEBREW_CHARS, JAPANESE_CHARS, KOREAN_CHARS } from './charsets.ts';
+export {
+  ARABIC_CHARS,
+  BENGALI_CHARS,
+  CHARSET_PRESETS,
+  DEVANAGARI_CHARS,
+  HEBREW_CHARS,
+  JAPANESE_CHARS,
+  KOREAN_CHARS,
+  SIMPLIFIED_CHINESE_CHARS,
+} from './charsets.ts';
 export {
   type BundleFile,
   DEFAULT_OPTIONS,
@@ -16,6 +25,16 @@ export {
 export { DEFAULT_CHARS, EXAMPLE_FONTS, type SkeletonMethod } from './constants.ts';
 export { createHbShaper, type HbShaper, type ShapedGlyph } from './font/hb-shaper.ts';
 export { enumerateFontChars } from './font/parse.ts';
+export {
+  type CompactHanziGlyph,
+  fetchHanziWriterData,
+  type HanziToStrokesOptions,
+  type HanziWriterCharData,
+  hanziDataToCompactGlyph,
+  hanziMediansToStrokes,
+  isCjkIdeograph,
+  mmahToFontUnits,
+} from './hanzi-stroke-data.ts';
 export { glyphToAnimatedSVG } from './processing/animated-svg.ts';
 export { isRtlChar, isRtlCodepoint } from './processing/rtl.ts';
 export { renderStage, STROKE_COLORS, type VisualizationStage } from './processing/visualize.ts';

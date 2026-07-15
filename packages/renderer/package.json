@@ -163,6 +163,13 @@
       "types": "./dist/fonts/atma/bundle.d.mts",
       "node": "./dist/fonts/atma/bundle.mjs",
       "default": "./dist/fonts/atma/bundle.mjs"
+    },
+    "./fonts/ma-shan-zheng": {
+      "tegaki@dev": "./fonts/ma-shan-zheng/bundle.ts",
+      "source": "./fonts/ma-shan-zheng/bundle.ts",
+      "types": "./dist/fonts/ma-shan-zheng/bundle.d.mts",
+      "node": "./dist/fonts/ma-shan-zheng/bundle.mjs",
+      "default": "./dist/fonts/ma-shan-zheng/bundle.mjs"
     }
   },
   "files": [

@@ -90,6 +90,7 @@ function fontBundlePlugin() {
         'tillana',
         'nanum-pen-script',
         'atma',
+        'ma-shan-zheng',
       ];
       for (const font of fonts) {
         const srcDir = resolve(configDir, 'fonts', font);
@@ -126,6 +127,7 @@ export default defineConfig({
     'fonts/tillana/bundle': 'fonts/tillana/bundle.ts',
     'fonts/nanum-pen-script/bundle': 'fonts/nanum-pen-script/bundle.ts',
     'fonts/atma/bundle': 'fonts/atma/bundle.ts',
+    'fonts/ma-shan-zheng/bundle': 'fonts/ma-shan-zheng/bundle.ts',
   },
   dts: true,
   sourcemap: true,
