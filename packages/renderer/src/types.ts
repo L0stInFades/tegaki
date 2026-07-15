@@ -121,12 +121,22 @@ export type TegakiEffectConfigs = {
    *   Positive values rotate clockwise (y-down screen convention).
    */
   globalGradient: BaseEffectConfig & { colors?: string[]; angle?: number };
+  /**
+   * Per-render skeleton path variation (issue #31). Slightly displaces stroke geometry with a
+   * low-frequency seeded noise field so successive independent renders of the same character
+   * look human-like different while sharing the same underlying DNA. Disable or set
+   * `amplitude: 0` for bit-stable geometry.
+   *
+   * - `amplitude`: displacement scale in font units (default ~12).
+   * - `frequency`: spatial frequency of the noise (default 0.8; lower = larger structural drifts).
+   */
+  variation: BaseEffectConfig & { amplitude?: number; frequency?: number };
 };
 
 export type TegakiEffectName = keyof TegakiEffectConfigs;
 
 /** Effects that can only appear once (cannot be used with custom keys). */
-export type TegakiSingletonEffectName = 'pressureWidth' | 'wobble' | 'taper' | 'strokeGradient' | 'globalGradient';
+export type TegakiSingletonEffectName = 'pressureWidth' | 'wobble' | 'taper' | 'strokeGradient' | 'globalGradient' | 'variation';
 
 /** Effects that can be duplicated with custom keys. */
 export type TegakiMultiEffectName = Exclude<TegakiEffectName, TegakiSingletonEffectName>;

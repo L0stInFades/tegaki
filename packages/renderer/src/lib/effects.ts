@@ -65,6 +65,7 @@ const knownEffects: Record<string, EffectDefinition> = {
   pressureWidth: {},
   taper: {},
   strokeGradient: {},
+  variation: {},
   globalGradient: {
     beforeRender(stage, config: { colors?: string[]; angle?: number }) {
       const colors = config.colors;

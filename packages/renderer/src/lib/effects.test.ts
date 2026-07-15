@@ -37,7 +37,7 @@ describe('resolveEffects', () => {
 
 describe('getEffectDefinition', () => {
   test('returns a definition object for every built-in effect', () => {
-    for (const name of ['glow', 'wobble', 'pressureWidth', 'taper', 'strokeGradient', 'globalGradient']) {
+    for (const name of ['glow', 'wobble', 'pressureWidth', 'taper', 'strokeGradient', 'globalGradient', 'variation']) {
       expect(getEffectDefinition(name)).toBeDefined();
     }
   });
@@ -50,7 +50,7 @@ describe('getEffectDefinition', () => {
   });
 
   test('per-stroke effects declare no render hooks', () => {
-    for (const name of ['glow', 'wobble', 'pressureWidth', 'taper', 'strokeGradient']) {
+    for (const name of ['glow', 'wobble', 'pressureWidth', 'taper', 'strokeGradient', 'variation']) {
       const def = getEffectDefinition(name);
       expect(def?.beforeRender).toBeUndefined();
       expect(def?.afterRender).toBeUndefined();

@@ -20,6 +20,7 @@ export {
   type TimelineEntry,
   type TimelineStaggerConfig,
 } from '../lib/timeline.ts';
+export { type VariationParams, varyPoint, varyPolyline } from '../lib/variation.ts';
 export type * from '../types.ts';
 export type { TegakiEffectConfigs, TegakiEffects } from '../types.ts';
 export { BUNDLE_VERSION, COMPATIBLE_BUNDLE_VERSIONS } from '../types.ts';
